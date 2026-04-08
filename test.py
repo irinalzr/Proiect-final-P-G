@@ -1,6 +1,8 @@
-import pyodbc
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox, ttk
+
+import pyodbc
+
 
 # Database connection and query classes
 class DatabaseConnection:
@@ -20,6 +22,7 @@ class DatabaseConnection:
         if self.connection:
             self.connection.close()
 
+
 class DataQuery:
     def __init__(self, db_connection):
         self.db_connection = db_connection
@@ -31,30 +34,47 @@ class DataQuery:
 
     def insert_identifier(self, identifier_name, description, identifier_type):
         cursor = self.db_connection.connection.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO Identifiers (identifier_name, description, identifier_type)
             VALUES (?, ?, ?)
-        """, (identifier_name, description, identifier_type))
+        """,
+            (identifier_name, description, identifier_type),
+        )
         self.db_connection.connection.commit()
 
     def delete_dependencies(self, table_name, identifier_column, identifier_value):
         cursor = self.db_connection.connection.cursor()
 
         if table_name == "Identifiers":
-            cursor.execute("DELETE FROM Ownership WHERE identifier_name = ?", (identifier_value,))
-            cursor.execute("DELETE FROM Relationships WHERE from_identifier_name = ? OR to_identifier_name = ?", (identifier_value, identifier_value))
-            cursor.execute("DELETE FROM IdentifierCharacteristics WHERE identifier_name = ?", (identifier_value,))
+            cursor.execute(
+                "DELETE FROM Ownership WHERE identifier_name = ?", (identifier_value,)
+            )
+            cursor.execute(
+                "DELETE FROM Relationships WHERE from_identifier_name = ? OR to_identifier_name = ?",
+                (identifier_value, identifier_value),
+            )
+            cursor.execute(
+                "DELETE FROM IdentifierCharacteristics WHERE identifier_name = ?",
+                (identifier_value,),
+            )
 
         if table_name == "Countries":
-            cursor.execute("DELETE FROM ConsumerUnits WHERE country_name = ?", (identifier_value,))
+            cursor.execute(
+                "DELETE FROM ConsumerUnits WHERE country_name = ?", (identifier_value,)
+            )
 
         self.db_connection.connection.commit()
 
     def delete_entry(self, table_name, identifier_column, identifier_value):
         self.delete_dependencies(table_name, identifier_column, identifier_value)
         cursor = self.db_connection.connection.cursor()
-        cursor.execute(f"DELETE FROM {table_name} WHERE {identifier_column} = ?", (identifier_value,))
+        cursor.execute(
+            f"DELETE FROM {table_name} WHERE {identifier_column} = ?",
+            (identifier_value,),
+        )
         self.db_connection.connection.commit()
+
 
 # Tkinter application class
 class Application:
@@ -63,26 +83,44 @@ class Application:
         self.db_connection = db_connection
         self.notebook = ttk.Notebook(root)
         self.create_tabs()
-        self.notebook.pack(expand=1, fill='both')
+        self.notebook.pack(expand=1, fill="both")
 
     def create_tabs(self):
         self.create_identifiers_tab()
         self.create_generic_tab("Countries", ["Name", "ISO Code", "Short Code"], "name")
-        self.create_generic_tab("ConsumerUnits", ["Number of Consumers", "Country Name"], "country_name")
-        self.create_generic_tab("Ownership", ["Identifier Name", "Originator First Name", "User ID"], "identifier_name")
-        self.create_generic_tab("Relationships", ["From Identifier", "To Identifier", "Relationship"], "from_identifier_name")
-        self.create_generic_tab("Characteristics", ["Master Name", "Name", "Specifics"], "master_name")
-        self.create_generic_tab("IdentifierCharacteristics", ["Identifier Name", "Master Name", "Characteristic Name"], "identifier_name")
+        self.create_generic_tab(
+            "ConsumerUnits", ["Number of Consumers", "Country Name"], "country_name"
+        )
+        self.create_generic_tab(
+            "Ownership",
+            ["Identifier Name", "Originator First Name", "User ID"],
+            "identifier_name",
+        )
+        self.create_generic_tab(
+            "Relationships",
+            ["From Identifier", "To Identifier", "Relationship"],
+            "from_identifier_name",
+        )
+        self.create_generic_tab(
+            "Characteristics", ["Master Name", "Name", "Specifics"], "master_name"
+        )
+        self.create_generic_tab(
+            "IdentifierCharacteristics",
+            ["Identifier Name", "Master Name", "Characteristic Name"],
+            "identifier_name",
+        )
 
     def create_identifiers_tab(self):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Identifiers")
 
-        self.identifier_tree = ttk.Treeview(frame, columns=('Identifier', 'Description', 'Type'), show='headings')
-        self.identifier_tree.heading('Identifier', text='Identifier')
-        self.identifier_tree.heading('Description', text='Description')
-        self.identifier_tree.heading('Type', text='Type')
-        self.identifier_tree.pack(expand=True, fill='both')
+        self.identifier_tree = ttk.Treeview(
+            frame, columns=("Identifier", "Description", "Type"), show="headings"
+        )
+        self.identifier_tree.heading("Identifier", text="Identifier")
+        self.identifier_tree.heading("Description", text="Description")
+        self.identifier_tree.heading("Type", text="Type")
+        self.identifier_tree.pack(expand=True, fill="both")
 
         self.fetch_identifiers()
 
@@ -101,8 +139,16 @@ class Application:
         self.type_entry = ttk.Entry(entry_frame)
         self.type_entry.grid(row=2, column=1)
 
-        ttk.Button(entry_frame, text="Add Identifier", command=self.add_identifier).grid(row=3, columnspan=2, pady=5)
-        ttk.Button(frame, text="Delete Selected", command=lambda: self.delete_entry(self.identifier_tree, "Identifiers", "identifier_name")).pack(pady=5)
+        ttk.Button(
+            entry_frame, text="Add Identifier", command=self.add_identifier
+        ).grid(row=3, columnspan=2, pady=5)
+        ttk.Button(
+            frame,
+            text="Delete Selected",
+            command=lambda: self.delete_entry(
+                self.identifier_tree, "Identifiers", "identifier_name"
+            ),
+        ).pack(pady=5)
 
     def fetch_identifiers(self):
         data_query = DataQuery(self.db_connection)
@@ -118,7 +164,9 @@ class Application:
         if identifier_name and description and identifier_type:
             data_query = DataQuery(self.db_connection)
             data_query.insert_identifier(identifier_name, description, identifier_type)
-            self.identifier_tree.insert("", tk.END, values=(identifier_name, description, identifier_type))
+            self.identifier_tree.insert(
+                "", tk.END, values=(identifier_name, description, identifier_type)
+            )
             self.identifier_name_entry.delete(0, tk.END)
             self.description_entry.delete(0, tk.END)
             self.type_entry.delete(0, tk.END)
@@ -129,17 +177,21 @@ class Application:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text=table_name)
 
-        tree = ttk.Treeview(frame, columns=columns, show='headings')
+        tree = ttk.Treeview(frame, columns=columns, show="headings")
         for col in columns:
             tree.heading(col, text=col)
-        tree.pack(expand=True, fill='both')
+        tree.pack(expand=True, fill="both")
 
         data_query = DataQuery(self.db_connection)
         data = data_query.fetch_all(table_name)
         for row in data:
             tree.insert("", tk.END, values=[str(item) for item in row])
 
-        ttk.Button(frame, text="Delete Selected", command=lambda: self.delete_entry(tree, table_name, identifier_column)).pack(pady=5)
+        ttk.Button(
+            frame,
+            text="Delete Selected",
+            command=lambda: self.delete_entry(tree, table_name, identifier_column),
+        ).pack(pady=5)
 
     def delete_entry(self, tree, table_name, identifier_column):
         selected_item = tree.selection()
@@ -152,6 +204,7 @@ class Application:
         data_query = DataQuery(self.db_connection)
         data_query.delete_entry(table_name, identifier_column, identifier_value)
         tree.delete(selected_item)
+
 
 # Main function to run the application
 def run_app():
@@ -167,10 +220,11 @@ def run_app():
 
     root = tk.Tk()
     root.title("Database Viewer")
-    app = Application(root, db_connection)
+    Application(root, db_connection)
     root.mainloop()
 
     db_connection.close()
+
 
 if __name__ == "__main__":
     run_app()
