@@ -19,7 +19,7 @@ jobs:
       - name: 📦 Instalează pachetele necesare
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi uvicorn sqlalchemy mysql-connector-python pydantic jinja2 pytest
+          pip install fastapi uvicorn sqlalchemy mysql-connector-python pydantic jinja2 pytest httpx
 
       - name: 🔍 Verifică sintaxa Python (căutăm erori fatale)
         run: |
@@ -27,5 +27,9 @@ jobs:
           python -m py_compile models.py
           
       # Am lăsat testele dezactivate momentan până rezolvăm faza cu baza de date
+      - name: Creează un db_conn.py fals pentru teste
+        run: |
+          echo "def get_db(): pass" > db_conn.py
+      
       - name: Rulează testele
-        run: pytest test.py
+        run: python -m pytest test.py
