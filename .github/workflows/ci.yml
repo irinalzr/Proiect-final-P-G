@@ -32,4 +32,4 @@ jobs:
           echo "def get_db(): pass" > db_conn.py
       
       - name: Rulează testele
-        run: python pytest -m test.py
+        run: python -m pytest test.py
