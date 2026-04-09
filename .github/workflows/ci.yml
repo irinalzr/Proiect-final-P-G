@@ -27,5 +27,9 @@ jobs:
           python -m py_compile models.py
           
       # Am lăsat testele dezactivate momentan până rezolvăm faza cu baza de date
+      - name: Creează un db_conn.py fals pentru teste
+        run: |
+          echo "def get_db(): pass" > db_conn.py
+      
       - name: Rulează testele
-        run: python -m pytest test.py
+        run: python pytest -m test.py
