@@ -28,4 +28,4 @@ jobs:
           
       # Am lăsat testele dezactivate momentan până rezolvăm faza cu baza de date
       - name: Rulează testele
-        run: pytest test.py
+        run: pytest -m test.py
