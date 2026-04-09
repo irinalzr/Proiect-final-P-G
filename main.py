@@ -61,8 +61,8 @@ def delete_country(name: str, db: Session = Depends(get_db)):
 
 @app.get("/ConsumerUnits/", response_model=list[ConsumerUnitResponse])
 def read_all_consumer_units(db: Session = Depends(get_db)):
-    countries = db.query(ConsumerUnit).all()
-    return countries
+    ConsumerUnits = db.query(ConsumerUnit).all()
+    return ConsumerUnits
 
 
 @app.post("/ConsumerUnits/", response_model=ConsumerUnitResponse)
