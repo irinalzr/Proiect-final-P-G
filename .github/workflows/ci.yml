@@ -1,0 +1,33 @@
+name: Verificare Proiect FastAPI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Descarcă codul
+        uses: actions/checkout@v3
+
+      - name: 🐍 Configurează Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' # Poți schimba cu versiunea ta de Python
+
+      - name: 📦 Instalează pachetele necesare
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn sqlalchemy mysql-connector-python pydantic jinja2 pytest
+
+      - name: 🔍 Verifică sintaxa Python (căutăm erori fatale)
+        run: |
+          python -m py_compile main.py
+          python -m py_compile models.py
+          
+      # Am lăsat testele dezactivate momentan până rezolvăm faza cu baza de date
+      - name: Rulează testele
+        run: pytest test.py
