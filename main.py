@@ -193,6 +193,9 @@ def delete_country(name: str, db: Session = Depends(get_db)):
 def read_all_consumer_units(db: Session = Depends(get_db)):
     units = db.query(ConsumerUnit).all()
     return units
+    ConsumerUnits = db.query(ConsumerUnit).all()
+    return ConsumerUnits
+
 
 @app.post("/ConsumerUnits/", response_model=ConsumerUnitResponse)
 def create_consumer_unit(consumer_unit: ConsumerUnitCreate, db: Session = Depends(get_db)):
