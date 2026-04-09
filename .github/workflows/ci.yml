@@ -2,8 +2,6 @@ name: Verificare Proiect FastAPI
 
 on:
   push:
-    branches:
-      - main
 
 jobs:
   build-and-check:
